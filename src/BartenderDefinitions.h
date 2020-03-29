@@ -37,10 +37,10 @@ int PALLETTE = 1;
 //else if (PALLETTE == 2) {
   // Pallette 2
   #define BACKGROUND_COLOR		0xFFFF	//FFFFFF
-  #define TEXT_COLOR	  0x0000	//000000
-  #define BASE_COLOR	  0xFFFF	//FFFFFF
-  #define SECOND_COLOR	0xC638	//C0C5C1
-  #define BORDER_COLOR	0x0000	//000000
+  #define TEXT_COLOR	        0x0000	//000000
+  #define BASE_COLOR	        0xFFFF	//FFFFFF
+  #define SECOND_COLOR	      0xC638	//C0C5C1
+  #define BORDER_COLOR	      0x0000	//000000
 //}
 
 struct ButtonRect {
