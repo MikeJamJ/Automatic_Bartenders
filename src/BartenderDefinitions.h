@@ -58,25 +58,27 @@ struct ButtonRect {
 };
 
 struct ButtonTri {
-  int x;
-  int y;
-  bool direction;
-  uint16_t width;
-  uint16_t height;
+  int x1;
+  int y1;
+  int x2;
+  int y2;
+  int x3;
+  int y3;
   uint16_t baseColor;
-  uint16_t secondaryColor;
-  byte border;
-  uint16_t borderColor;
+  uint16_t selectColor;
 };
 
 ButtonRect UseCurrent = {20, 73, 187, 53, BASE_COLOR, SECOND_COLOR, "Use Current", 2, TEXT_COLOR, 3, BORDER_COLOR};
 ButtonRect AlterCurrent = {20, 150, 187, 53, BASE_COLOR, SECOND_COLOR, "Alter Current", 2, TEXT_COLOR, 3, BORDER_COLOR};
 ButtonRect SetNew = {20, 227, 187, 53, BASE_COLOR, SECOND_COLOR, "Set New", 2, TEXT_COLOR, 3, BORDER_COLOR};
-
 ButtonRect Swap = {71, 70, 338, 53, BASE_COLOR, SECOND_COLOR, "Swap Ingredients", 2, TEXT_COLOR, 3, BORDER_COLOR};
-ButtonRect SwapSelected = {-2, 26, 49, 34, TEXT_COLOR, SECOND_COLOR, "Swap", 1, BASE_COLOR, 2, BORDER_COLOR};
 ButtonRect Run = {71, 134, 338, 53, BASE_COLOR, SECOND_COLOR, "Prime / Run Pump", 2, TEXT_COLOR, 3, BORDER_COLOR};
-ButtonRect PrimeSelected = {-2, 61, 49, 34, TEXT_COLOR, SECOND_COLOR, "Prime", 1, BASE_COLOR, 2, BORDER_COLOR};
 
+ButtonTri MainMenuRight = {458, 160, 422, 128, 422, 156, SECOND_COLOR, BORDER_COLOR};
+ButtonTri MainMenuLeft = {20, 160, 56, 128, 56, 156, SECOND_COLOR, BORDER_COLOR};
+ButtonTri PumpScrollRight = {398, 148, 362, 134, 362, 162, BACKGROUND_COLOR, BORDER_COLOR};
+ButtonTri PumpScrollLeft = {86, 148, 122, 134, 122, 162, BACKGROUND_COLOR, BORDER_COLOR};
+ButtonTri IngredientScrollLeft = {398, 191, 362, 177, 362, 205, BACKGROUND_COLOR, BORDER_COLOR};
+ButtonTri IngredientScrollRight = {86, 191, 122, 177, 122, 205, BACKGROUND_COLOR, BORDER_COLOR};
 
 #endif
