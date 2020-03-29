@@ -1,0 +1,82 @@
+Bartender Functions:
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	MENU FUNCTIONS
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+1	void	chooseOption()
+1	void 	mainMenu()
+1	void	settings()
+1	void	SubSet_Swap()
+1	void 	SubSet_Run()
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	SCREEN FUNCTIONS
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+1: Draws a screen
+2: Draws a subset of a screen
+3: Updates a subset of a screen
+
+1	void 	drawLogo()
+1	void 	drawChooseStartingOption()
+1	void 	drawSetIngs()
+1	void 	drawMainMenu()
+1	void 	drawSettingsMenu()
+1	void 	drawSubSet_Swap()
+1	void 	drawSubSet_Run()
+
+2	void 	drawDrinkInProgress()
+2	void 	drawDrinkComplete()
+2	void 	drawButton(ButtonRect, boolean)				//Pass rectangle button struct, whether it's selected
+2	void 	drawButton(ButtonTri, boolean)				//Pass trinagle button struct, whether it's selected
+2	void 	drawPumpButtonsArray()
+2	void 	printPumpValues(int, int, int, int, uint16_t, uint16_t)	//Pass x position, y position, x spacing, y spacing, text color, background color
+
+3	void 	updateChooseStartingOptionButtons()
+3	void 	updateMainMenu(DrinkList drinkList)			//Pass DrinkList of possible drinks
+3	int 	updateDrinkProgressBar(int, unsigned long, int)
+3	void 	updateSettingsButtons()
+3	void 	updatePumpButtonsArray(int)				//Pass the position of last button selected
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	SUPPLEMENTARY PRINT FUNCTIONS
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+1	void 	setTextSize(int s)		//Pass the size of the font, between 1-7
+1	void 	printCenterV(String, int)	//Pass the string to be centered, the x value of where the string will be printed
+1	void 	printCenterH(String, int)	//Pass the string to be centered, the y value of where the string will be printed
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	MAKE DRINK FUNCTIONS
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+1: Makes the drink
+2: Supplementary functions for making the drink
+
+1	void 	makeDrink()				
+
+2	String 	findPump(int)		//Pass the position in the Ingredients array of the chosen drink
+2	int 	choosePump(String)	//Pass the string of the found pump 
+2	void 	startPump(int, int)	//Pass chosen pump, chosen ingredient
+2	void	startPump(int)		//Pass the int of the chosen pump
+2	void 	checkForFinishedPump()
+2	bool 	finishedMakeDrink()
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	MEMORY FUNCTIONS
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+1: For EEPROM memory
+2: For SD card info
+
+1	void 	getPumpValuesFromMemory()
+1	void 	setPumpValuesToMemory()
+1	String 	readStringMemory(uint16_t)		//Pass address location
+1	void 	updateStringMemory(uint16_t, String)	//Pass address location, data to write
+
+2	void 	getPumpValuesFromSD()
+2	void 	setPumpValuesToSD()
+2	void 	writeDataLog(String)			//Pass data to write
+2	void 	readDataLog()
+
