@@ -12,6 +12,7 @@ Consisted of 3 buttons for scrolling through drinks and selecting one to make. A
 
 
 ## Bartender 2.0
+Added more robust libraries and classes for drinks and ingredients. This version also switched to an LCD display and rotary encoder for navigating the UI.
 
 |Hardware|Libraries|
 |:-------|:--------|
@@ -19,12 +20,14 @@ Consisted of 3 buttons for scrolling through drinks and selecting one to make. A
 
 
 ## Bartender 2.5 320x240
+Completely rewrote the classes and began to store images of each drink to display.
 
 |Hardware|Libraries|
 |:-------|:--------|
 |Board:<ul><li>Arduino Mega ATmega2560</li></ul>Screen:<ul><li>[SainSmart 3.2" TFT LCD Display](https://www.amazon.ca/gp/product/B008FWSG3S/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1)</li><li>[3.2" TFT LCD Expansion Board](https://www.amazon.ca/gp/product/B07H2FKH73/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1)</li></ul>|<ul><li>Adafruit_GFX.h</li><li>[UTFTGLUE.h](https://github.com/prenticedavid/MCUFRIEND_kbv)</li><li>EEPROM.h</li></ul>|
 
 ## Bartender 2.5 480x320
+Further reworked the classes to operate more efficiently. A new, larger LCD display is now used that has a built in SD card reader to store images instead of using on board memory.
 
 |Hardware|Libraries|
 |:-------|:--------|
