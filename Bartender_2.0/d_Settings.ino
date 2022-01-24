@@ -22,7 +22,6 @@ void settings() {
     
     if (position_ != lastPosition) {
       lastPosition = position_;
-      POSCHANGE = false;
       printSettingsInfo(position_);
       delay(20);
     }
@@ -210,4 +209,3 @@ void printSubSettingInfo(String subSetOptions[], int subSetPosition_) {
   //lcd.setCursor(0, 1);
   //lcd.print(subSetOptions[subSetPosition_]);
 }
-

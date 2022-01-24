@@ -195,7 +195,8 @@ void alphabetize() {
 
 //-----------------------------------------------------------------------------------------------
 
-void checkIfTypePossible(){
+// Deppreciated function
+/*void checkIfTypePossible(){
   Serial.println("===================================");
   Serial.println("CHECKING POSSIBLE DRINK TYPES");
   Serial.println("===================================\n");
@@ -229,4 +230,4 @@ void checkIfTypePossible(){
   Serial.println(typeShot);
   Serial.print("\n");
 }
-
+*/

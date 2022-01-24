@@ -12,12 +12,13 @@
 #include "Drink.h"
 
 //Libraries for screen
-#include <color.h>
-#include <DefaultFonts.h>
 #include <UTFT.h>
 #include <URTouch.h>
 #include <avr/pgmspace.h>
 #include <Wire.h>
+
+extern uint8_t SmallFont[];
+extern uint8_t BigFont[];
 
 //Library to see arduino memory
 #include <MemoryFree.h>
@@ -324,4 +325,3 @@ void loop() {
   }
   Serial.println("END OF LOOP");
 }
-
