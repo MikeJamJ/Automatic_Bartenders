@@ -1,0 +1,34 @@
+/*void checkIfTypePossible(){
+  Serial.println("===================================");
+  Serial.println("CHECKING POSSIBLE DRINK TYPES");
+  Serial.println("===================================\n");
+  
+  for (int j = 0; j < (sizeof possible_drinks / sizeof possible_drinks[0]); j++){
+    Serial.print("Drink Type: ");
+    Serial.print(possible_drinks[j].type);
+    Serial.print("\t");
+    if (possible_drinks[j].type == drinkType[3]){
+      Serial.println("End of possible drinks");
+      break;
+    }
+    else if (possible_drinks[j].type == drinkType[0]){
+      Serial.println("Found an alcoholic drink");
+      typeAlc = true;
+    }
+    else if (possible_drinks[j].type == drinkType[1]){
+      Serial.println("Found an non-alcoholic drink");
+      typeNonAlc = true;
+    }
+    else if (possible_drinks[j].type == drinkType[2]){
+      Serial.println("Found a shot");
+      typeShot = true;
+    }
+  }
+  Serial.print("Alcoholic: \t");
+  Serial.println(typeAlc);
+  Serial.print("Non-Alcoholic: \t");
+  Serial.println(typeNonAlc);
+  Serial.print("Shot: \t\t");
+  Serial.println(typeShot);
+  Serial.print("\n");
+}*/
