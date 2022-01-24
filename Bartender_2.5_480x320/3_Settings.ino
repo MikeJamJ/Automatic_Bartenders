@@ -1,28 +1,31 @@
 /*
-   settings menu that allow the user to choose between cleaning and priming individual pumps:
-   settings();
-   printSettingsInfo(int pos);
+   Creator:
+      Michael Jamieson
+   Date of last Update:
+      07/09/2019
+   Description:
+      Settings menu that allows the user to choose between cleaning and priming individual pumps:
 */
 
 //-----------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------
 
 void settings() {
+#if PRINT_TO_SERIAL
   Serial.println(F("\n===================================\nENTERING SETTINGS\n===================================\n"));
-
-  int numOfSettingOptions = 1;
+#endif
+  
+  int8_t numOfSettingOptions = 1;
+  drawSettingsMenu();
   resetPosValue();
-
-  while (!digitalRead(butSelect)) {}
+  while (!digitalRead(butSelect)) {}  // wait until button not held
 
   while (b_SET == true) {
     if (pos != lastPos) {
-      //Turns off interrupt to allow the code to finish before another value can be checked
       noInterrupts();  
       if (pos < 0) pos = numOfSettingOptions;
       else if (pos > numOfSettingOptions) pos = 0;
-      Serial.print(F("position: "));
-      Serial.println(pos);
+      serialPrintPosValue();
       updateSettingsButtons();
       lastPos = pos;
       interrupts();
@@ -42,25 +45,12 @@ void settings() {
       if (!b_MM) {
         b_SUBSET = true;
         if (pos == 0) {
-          drawSubSet_Swap();
           SubSet_Swap();
         }
         else if (pos == 1) {
-          drawSubSet_Run();
           SubSet_Run();
         }
       }      
     }
   }
-  Serial.print(F("END OF b_SETTINGS\nb_SET: "));
-  Serial.println(b_SET);
-}
-
-
-//For b_SUBSET menus
-void printCurrentIngInfo() {
-  tft.fillRect(160, 84, 319, 96, BACKGROUND_COLOR);
-  tft.setCursor(160, 84);
-  tft.setTextColor(TEXT_COLOR, BACKGROUND_COLOR);
-  tft.print(pumps[pos].value);
 }

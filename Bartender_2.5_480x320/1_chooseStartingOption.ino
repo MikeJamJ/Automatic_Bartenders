@@ -2,16 +2,18 @@
    Creator:
       Michael Jamieson
    Date of last Update:
-      14/11/2019
+      07/09/2019
    Description:
       gives the user the ability to choose which pump values to start the program with
 
       choseOption() is the main loop where setIngs() is used for if the user wants to
-      alter the current pump values or set brand new ones
+      alter the current pump values or set new ones
 */
 
 void chooseOption() {
+#if PRINT_TO_SERIAL
   Serial.println(F("\n===================================\nENTERING CHOOSE OPTIONS\n===================================\n"));
+#endif
 
   bool b_chooseOption = 1;
   bool b_useNewIngs = 0;
@@ -21,17 +23,16 @@ void chooseOption() {
 
   /*
      Choose to:
-     1. use previous values
-     2. alter previous values
+     1. use current values
+     2. alter current values
      3. use new values
   */
   while (b_chooseOption) {
     if (pos != lastPos) {
       noInterrupts(); //Turn off interrupts
-      if (pos < 0) pos = 2;
+      if (pos < 0)      pos = 2;
       else if (pos > 2) pos = 0;
-      Serial.print(F("position: "));
-      Serial.println(pos);
+      serialPrintPosValue();
       updateChooseStartingOptionButtons();
       lastPos = pos;
       interrupts();   //Turn on interrupts
@@ -59,17 +60,24 @@ void chooseOption() {
       }
     }
   }
-  Serial.println(F("END OF CHOOSE OPTIONS"));
-  Serial.println(F("\n===================================\nVALUES INPUT\n===================================\n"));
+#if PRINT_TO_SERIAL
+  Serial.println(F("\n===================================\nEND OF CHOOSE OPTIONS\n===================================\n"));
+#endif
 }
 
 void setIngs() {
+#if PRINT_TO_SERIAL
+  Serial.println(F("\n===================================\nENTERING SET INGS\n===================================\n"));
+#endif
+
   bool b_setIngs = 1;
-  uint8_t lastButton = 0;
+  bool b_countdown = 0;
+  uint8_t lastPump = 0;
 
   drawSetIngs();
-  printCurrentIngInfo();
   resetPosValue();
+  updatePumpSelectionButton(1);
+  updateIngredientSelection(0);
 
   while (b_setIngs) {
     if (pos != lastPos) {
@@ -77,12 +85,11 @@ void setIngs() {
       noInterrupts();
       if (pos < 0) pos = numOfPumps - 1 ;
       else if (pos > (numOfPumps - 1)) pos = 0;
-      Serial.print(F("position: "));
-      Serial.println(pos);
-      //updatePumpButtonsArray(lastButton);
-      printCurrentIngInfo();
+      serialPrintPosValue();
+      updatePumpSelectionButton(1);
+      updateIngredientSelection(0);
       lastPos = pos;
-      lastButton = pos;
+      lastPump = pos;
       interrupts();
     }
 
@@ -94,6 +101,8 @@ void setIngs() {
         setTextSize(2);
         tft.setTextColor(TEXT_COLOR, BACKGROUND_COLOR);
         if ((curButtonTime - prevButtonTime) == 500) {
+          b_countdown = 1;
+          tft.fillRect(0, 300, tft.width(), tft.height() - 300, BACKGROUND_COLOR);
           printCenterH(F("3"), 300);
         }
         else if ((curButtonTime - prevButtonTime) == 1500) {
@@ -104,24 +113,33 @@ void setIngs() {
         }
         else if ((curButtonTime - prevButtonTime) >= 3500) {
           b_setIngs = 0;
-          setPumpValuesToMemory();
-          //setPumpValuesToSD();
-          //printFileContents(pumpFileName);
+          if (b_SD_CONNECTED) setPumpValuesToSD();
+          else      setPumpValuesToMemory();
           break;
         }
       }
-      if (b_setIngs) {
+      if (b_countdown) {
+        printCenterH(F("Hold button to confirm selection"), 300);
+        b_countdown = 0;
+      }
+      else if (b_setIngs) {
         if ((curButtonTime - prevButtonTime) > 500) {
           tft.fillRect( ((tft.width() / 2) - (TEXT_WIDTH / 2)), 300, TEXT_WIDTH, TEXT_HEIGHT, BACKGROUND_COLOR);
         }
+        drawPumpSelectionButton(0);
+        updatePumpSelectionButton(0);
+        drawIngredientSelection(1);
         swapIngredient(pos);
-        Serial.println(F("Back in setIngs();"));
-
+        pos = lastPump;
+        lastPos = pos;
+        drawPumpSelectionButton(1);
+        updatePumpSelectionButton(1);
+        drawIngredientSelection(0);
+        updateIngredientSelection(0);
       }
     }
   }
 }
-
 
 void resetPumpValues() {
   for (uint8_t i = 0; i < numOfPumps; i++) {

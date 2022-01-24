@@ -1,12 +1,22 @@
-/*
-   Functions for struct Pump
 
+/*
+   Creator:
+      Michael Jamieson
+   Date of last Update:
+      07/09/2019
+   Description:
+      Functions for reading and writing from memory. 
+      This can be either from EEPROM or an SD card.
 */
 
+//-----------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------
+
 /*
+   Read a string from EEPROM memory
 
-   Reading and writing to memory
-
+   @param add       address to begin reading from
+   @returns String  the string stored
 */
 String readStringMemory(uint16_t add) {
   char data[30]; //Max 30 Bytes
@@ -22,6 +32,14 @@ String readStringMemory(uint16_t add) {
   return String(data);
 }
 
+/*
+   Add String to EEPROM memory
+   The function checks if the characters are different before writing
+   to save on write calls
+
+   @param add   address to begin reading from
+   @param data  the string to be stored
+*/
 void updateStringMemory(uint16_t add, String data) {
   uint16_t _size = data.length();
 #if PRINT_TO_SERIAL
@@ -52,6 +70,10 @@ void updateStringMemory(uint16_t add, String data) {
   }
 }
 
+/*
+   Loop through 'pumps' array and retrieve all ingredients used during the last run,
+   then updates each pump's 'name' value
+*/
 void getPumpValuesFromMemory() {
 #if PRINT_TO_SERIAL
   Serial.println(F("\nGETTING PUMP VALUES FROM MEMORY\n~~~~~~~~~~~~~~~~~~~~~~~~~~~"));
@@ -70,6 +92,9 @@ void getPumpValuesFromMemory() {
   serialPrintPumpInfo();
 }
 
+/*
+   Loop through 'pumps' array and write all current ingreient names to EEPROM memory
+*/
 void setPumpValuesToMemory() {
 #if PRINT_TO_SERIAL
   Serial.println(F("\nSETTING PUMP VALUES TO MEMORY\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"));
@@ -88,74 +113,87 @@ void setPumpValuesToMemory() {
   serialPrintPumpInfo();
 }
 
+/*
+   Read a file stored on the SD card and retrieve all ingredients used during the last run,
+   then update each pump's 'name' value
+*/
 void getPumpValuesFromSD() {
-  myFile = SD.open(pumpFileName);
+  File myFile = SD.open(F("PVALS.txt"));
+  byte tempByte;
   for (uint8_t i = 0; i < 8; i++) {
     char value[30] = {};
     uint8_t curString = 0;
-#if PRINT_TO_SERIAL
-    Serial.println(F("NEW FOR LOOP"));
-    Serial.print(F("Spot in for loop: "));
-    Serial.println(i);
-    Serial.print(F("curString: "));
-    Serial.println(curString);
-#endif
+    
     while (myFile.available()) {
-      byte tempByte = myFile.read();
+      tempByte = myFile.read();
 #if PRINT_TO_SERIAL
       Serial.print(tempByte);
       Serial.print(F("\t"));
       Serial.println(char(tempByte));
 #endif
-      if (tempByte == '\0') {
-#if PRINT_TO_SERIAL
-        Serial.println(F("BREAK REACHED"));
-#endif
-        break;
-      }
+      if (tempByte == 13)       {break;}  // Carriage return character
+      else if (tempByte == 10)  {}        // New line character
       else {
         value[curString] = char(tempByte);
         curString++;
       }
     }
-    pumps[i].value = String(value);
+    if (String(value) == "")  pumps[i].value = "NULL";
+    else                      pumps[i].value = String(value);
   }
   myFile.close();
 }
 
+/*
+   Loop through 'pumps' array and write all current ingreient names to a file
+   stored on the SD card
+*/
 void setPumpValuesToSD() {
-  if (SD.exists(pumpFileName)) {
-    SD.remove(pumpFileName);
+  if (SD.exists("PVALS.txt")) {
+    SD.remove(F("PVALS.txt"));
   }
-  myFile = SD.open(pumpFileName, FILE_WRITE);
+  File myFile = SD.open(F("PVALS.txt"), FILE_WRITE);
   if (myFile) {
-    for (uint8_t i = 0; i < 8; i++) {
-      myFile.println(pumps[i].value + '\0');
+    for (uint8_t i = 0; i < numOfPumps; i++) {
+      Serial.println(pumps[i].value);
+      myFile.println(pumps[i].value);
     }
   }
-}
-
-void writeDataLog(String str) {
-  dataLog = SD.open(F("dataLog.txt"), FILE_WRITE);
-  if(dataLog) {
-    dataLog.println(str);
-    dataLog.close();
-  }
-}
-
-void readDataLog() {
-  dataLog = SD.open("dataLog.txt");
-  Serial.println(F("dataLog.txt"));
-  while(dataLog.available()) {
-    Serial.write(dataLog.read());
-  }
-  dataLog.close();
+  myFile.close();
 }
 
 /*
+   Write a string to the dataLog stored on the SD card
+   Used for debugging purposes
 
-   Test functions
+   @param str   the string to write to the data log
+*/
+void writeDataLog(String str) {
+  File myFile = SD.open("dataLog.txt", FILE_WRITE);
+  if (myFile) {
+    myFile.println(str);
+    myFile.close();
+  }
+}
 
+/*
+   Print the entire contents of the data log to the Serial Monitor
+*/
+void readDataLog() {
+  File myFile = SD.open(F("dataLog.txt"));
+  Serial.println(F("dataLog.txt"));
+  while (myFile.available()) {
+    Serial.write(myFile.read());
+  }
+  myFile.close();
+}
+
+//================================================================================
+// TEST FUNCTIONS
+//================================================================================
+
+/*
+   Print to Serial all information relating to the pump objects in the 'pumps' array
 */
 void serialPrintPumpInfo() {
 #if PRINT_TO_SERIAL
@@ -165,7 +203,20 @@ void serialPrintPumpInfo() {
     Serial.print(pumps[i].name);
     Serial.print(F("\tPump Value: "));
     Serial.print(pumps[i].value);
-    Serial.print(F("\t\t\tPump Address: "));
+    uint8_t temp = pumps[i].value.length() / 8;
+    switch (temp) {
+      case 0:
+        Serial.print(F("\t\t\t"));
+        break;
+      case 1:
+        Serial.print(F("\t\t"));
+        break;
+      case 2:
+      default:
+        Serial.print(F("\t"));
+        break;
+    }
+    Serial.print(F("Pump Address: "));
     Serial.print(pumps[i].address);
     Serial.print(F("\tStart: "));
     Serial.print(pumps[i].startTime);
@@ -175,22 +226,35 @@ void serialPrintPumpInfo() {
 #endif
 }
 
+/*
+   Print to Serial the entire contents of a chosen file on the SD card
+
+   @param fileName  file name of desired file to read and print contents of
+*/
 void printFileContents(String fileName) {
-  myFile = SD.open(fileName);
+  File myFile = SD.open(fileName);
   while (myFile.available()) {
     Serial.write(myFile.read());
   }
   myFile.close();
 }
 
+/*
+   Loop through 'pumps' array turning on every relay associated
+   Used for visually checking if relays are connected correctly
+*/
 void relayTest() {
   for (int i = 0; i < 8; i++) {
     digitalWrite(pumps[i].pin, RELAY_ON);
+#if PRINT_TO_SERIAL
     Serial.print(pumps[i].name);
-    Serial.println(" Turned On");
+    Serial.println(F(" Turned On"));
+#endif
     delay(1000);
     digitalWrite(pumps[i].pin, RELAY_OFF);
+#if PRINT_TO_SERIAL
     Serial.print(pumps[i].name);
-    Serial.println(" Turned Off");
+    Serial.println(F(" Turned Off"));
+#endif
   }
 }

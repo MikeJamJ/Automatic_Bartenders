@@ -1,29 +1,34 @@
 /*
-   SS_Swap functions. Will go through the ingredient array and swap
-   the current drink with the selected ingredient
+   Creator:
+      Michael Jamieson
+   Date of last Update:
+      07/09/2019
+   Description:
+      Function for changing the Ingredient currently associated with a pump to a new one from
+      the list of Ingredients
 */
 
 //-----------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------
 
 void SubSet_Swap() {
+#if PRINT_TO_SERIAL
   Serial.println(F("\n===================================\nENTERING SWAP\n===================================\n"));
+#endif
 
   uint8_t lastButton = 0;
-  //drawPumpButtonsArray();
-  //printCurrentIngInfo();
+  drawSubSet_Swap();
+  resetPosValue();
+  while (!digitalRead(butSelect)) {} // wait until button not held
 
   while (b_SUBSET == true) {
     if (pos != lastPos) {
-      //Turns off interrupt to allow the code to finish before another value can be checked
-      noInterrupts();  
+      noInterrupts();
       if (pos < 0) pos = numOfPumps - 1;
       else if (pos > numOfPumps - 1) pos = 0;
-      Serial.print(F("position: "));
-      Serial.println(pos);
-      updatePumpSelectionButton();
-      //updatePumpButtonsArray(lastButton);
-      //printCurrentIngInfo();
+      serialPrintPosValue();
+      updatePumpSelectionButton(1);
+      updateIngredientSelection(0);
       lastPos = pos;
       lastButton = pos;
       interrupts();
@@ -41,79 +46,58 @@ void SubSet_Swap() {
         }
       }
       if (b_SUBSET) {
+        drawPumpSelectionButton(0);
+        updatePumpSelectionButton(0);
+        drawIngredientSelection(1);
         swapIngredient(pos);
-        Serial.println(F("Back in subset swap"));
+        pos = lastButton;
+        lastPos = pos;
+        drawPumpSelectionButton(1);
+        updatePumpSelectionButton(1);
+        drawIngredientSelection(0);
+        updateIngredientSelection(0);
       }
     }
   }
-  Serial.print(F("END OF SWAP\nSUBSET: "));
-  Serial.println(b_SUBSET);
-  Serial.println(F("\n===================================\nREENTERING SETTINGS\n===================================\n"));
-  resetPosValue();
+
   drawSettingsMenu();
+  resetPosValue();
   while (!digitalRead(butSelect)) {}
 }
 
+/*
+   Allows the current ingredient associated with a pump to be changed
 
-void swapIngredient (int pumpNum) {
+   @param curPump   pump to be changed
+*/
+void swapIngredient (int curPump) {
+#if PRINT_TO_SERIAL
   Serial.println(F("\n===================================\nENTERING SUBSWAP\n===================================\n"));
+#endif
+
   bool SWAP = true;
-  resetPosValue();
-  tft.setCursor(150, 144);
-  tft.setTextColor(TEXT_COLOR, BACKGROUND_COLOR);
-  tft.print(F("New Ingredient:"));
 
-  String ings[] = {
-    "Apple Juice",
-    "Bourbon",
-    "Brandy",
-    "Champagne",
-    "Club Soda",
-    "Cointreau",
-    "Coke",
-    "Cranberry Juice",
-    "Curacao Blue",
-    "Curacao Orange",
-    "Gin",
-    "Green Chartreuse",
-    "Grenadine",
-    "Kahlua",
-    "Lemon Juice",
-    "Lime Juice",
-    "Margarita Mix",
-    "Martini Mix",
-    "Milk",
-    "Orange Juice",
-    "Pineapple Juice",
-    "Rum",
-    "Scotch",
-    "Simple Syrup",
-    "Sprite",
-    "SP Apple",
-    "SP Blue",
-    "SP Raspberry",
-    "SP Watermelon",
-    "S&S Mix",
-    "Tequila",
-    "Vermouth (Dry)",
-    "Vermouth (Sweet)",
-    "Vex",
-    "Vodka",
-    "null"
-  };
-  byte sizeOfIngArray = sizeof(ings)/sizeof(ings[0]);
+  // find the Ingredient in the list that matches the one associated with the passed pump 'curPump'
+  for (byte i = 0; i < sizeOfIngList; i++) {
+    if (IngredientList[i].getIngName() == pumps[curPump].value) {
+      pos = i;
+      lastPos = pos;
+      break;
+    }
+  }
+  updateIngredientSelection(1);
 
-  printSwapInfo(ings);
+  while (!digitalRead(butSelect)) {}  // wait until button not held
 
   while (SWAP == true) {
     if (pos != lastPos) {
-      if (pos < 0) pos = sizeOfIngArray - 1;
-      else if (pos > sizeOfIngArray - 1) pos = 0;
-      Serial.print(F("position: "));
-      Serial.println(pos);
-      printSwapInfo(ings);
+      noInterrupts();
+      if (pos < 0) pos = sizeOfIngList - 1;
+      else if (pos > sizeOfIngList - 1) pos = 0;
+      serialPrintPosValue();
+      updateIngredientSelection(1);
       lastPos = pos;
-      delay(20);
+      interrupts();
     }
 
     if (!digitalRead(butSelect)) {
@@ -127,30 +111,9 @@ void swapIngredient (int pumpNum) {
         }
       }
       if (SWAP) {
-        pumps[pumpNum].value = ings[pos];
+        pumps[curPump].value = IngredientList[pos].getIngName();
         SWAP = false;
       }
     }
   }
-  Serial.print(F("END OF SUBSWAP\nSWAP: "));
-  Serial.println(SWAP);
-  Serial.println(F("\n===================================\nREENTERING SWAP\n===================================\n"));
-  resetPosValue();
-  resetSwap(pumpNum);
-  while (!digitalRead(butSelect)) {}
-}
-
-
-void printSwapInfo(String ings[]) {
-  tft.fillRect(160, 164, 319, 176, BACKGROUND_COLOR);
-  tft.setCursor(160, 164);
-  tft.setTextColor(TEXT_COLOR, BACKGROUND_COLOR);
-  tft.print(ings[pos]);
-}
-
-
-void resetSwap(byte n){
-  pos = n;
-  tft.fillRect(150, 144, 319, 176, BACKGROUND_COLOR);
-  printCurrentIngInfo();
 }

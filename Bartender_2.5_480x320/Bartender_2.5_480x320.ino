@@ -42,9 +42,9 @@
 #define Pump7Address  180
 #define Pump8Address  210
 
-//-----------------------------------------------------------------------------------------------
-// GLOBAL VARIABLES -----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------------------------
+//================================================================================
+// GLOBAL VARIABLES
+//================================================================================
 
 //  DEFUALT FONT DIMENSIONS
 byte TEXT_HEIGHT = 8;
@@ -66,13 +66,13 @@ Pump pumps[] = {
   Pump{"Pump 7", "NULL", Pump7Address, Relay_7, 0, 0},
   Pump{"Pump 8", "NULL", Pump8Address, Relay_8, 0, 0}
 };
-
-uint8_t numOfPumps = (sizeof(pumps) / sizeof(pumps[0]));
+uint8_t numOfPumps = ARRAYCOUNT(pumps);
 
 //  BOOLEAN DEFINITIONS
 bool b_MM = true;
 bool b_SET = false;
 bool b_SUBSET = false;
+bool b_SD_CONNECTED = false;
 
 //  ROTARY ENCODER
 volatile unsigned long time_isrA = 0;
@@ -87,45 +87,22 @@ uint16_t curButtonTime = 0;
 uint16_t prevButtonTime = 0;
 
 //  POSITION IN ARRAY
-volatile int pos = 0;
-byte lastPos = 0;
-byte endOfDrinkList = 0;
+volatile int8_t pos = 0;
+uint8_t lastPos = 0;
+uint8_t endOfDrinkList = 0;
 
 //  DEFINES 480x320 SCREEN
 MCUFRIEND_kbv tft;
 
-File myFile;
-File dataLog;
-
-String pumpFileName = "pVals.txt";
-String dataLogFileName = "";
-
-
-//-----------------------------------------------------------------------------------------------
-// DRINK LIST
-//-----------------------------------------------------------------------------------------------
-Drink drink_list[] = {
-  blackRussian,
-  LITea,
-  whiskeySour,
-  bMF2,
-  margaritaMix,
-  greenGhost,
-  rumAndCoke,
-  screwDriver,
-  ginAndOrangeJuice,
-  tequilaSunrise,
-  vodkaCran,
-  blueMartini,
-  shirleyTemple
-}; //Array of all drinks
-DrinkList masterDrinkList(drink_list, sizeof(drink_list) / sizeof(drink_list[0]));
+//================================================================================
+// DRINK
+//================================================================================
 
 Drink choice = defaultDrink; //variable to select which drink to make
 
-//-----------------------------------------------------------------------------------------------
+//================================================================================
 // ISR's
-//-----------------------------------------------------------------------------------------------
+//================================================================================
 
 void isrA() {
   time_isrA = millis();
@@ -136,7 +113,9 @@ void isrA() {
         pos--;
         isrATrig = 1;
       }
-      else if (!isrBTrig) { isrATrig = 1; }
+      else if (!isrBTrig) {
+        isrATrig = 1;
+      }
     }
   }
   if (isrATrig && isrBTrig) {
@@ -144,11 +123,11 @@ void isrA() {
     isrBTrig = 0;
   }
   prevTime_isrA = time_isrA;
-  while(digitalRead(rotRight) != digitalRead(rotLeft)){}
+  while (digitalRead(rotRight) != digitalRead(rotLeft)) {}
 }
 
 void isrB() {
-time_isrB = millis();
+  time_isrB = millis();
   if (time_isrB - prevTime_isrB > 2) {
     if (isrBTrig) {}  //do nothing, isrB should not be called twice in a row
     else if (!isrBTrig) {
@@ -156,7 +135,9 @@ time_isrB = millis();
         pos++;
         isrBTrig = 1;
       }
-      else if (!isrATrig) { isrBTrig = 1; }
+      else if (!isrATrig) {
+        isrBTrig = 1;
+      }
     }
   }
   if (isrATrig && isrBTrig) {
@@ -164,12 +145,12 @@ time_isrB = millis();
     isrBTrig = 0;
   }
   prevTime_isrB = time_isrB;
-  while(digitalRead(rotRight) != digitalRead(rotLeft)){}
+  while (digitalRead(rotRight) != digitalRead(rotLeft)) {}
 }
 
-//-----------------------------------------------------------------------------------------------
+//================================================================================
 // SETUP
-//-----------------------------------------------------------------------------------------------
+//================================================================================
 
 void setup() {
   Serial.begin(74880);
@@ -179,11 +160,12 @@ void setup() {
   Serial.print(F("..."));
   if (!SD.begin(chipSelect)) {
     Serial.println(F("initialization failed"));
-    while (1);
+    b_SD_CONNECTED = false;
+  } else {
+    b_SD_CONNECTED = true;
   }
   Serial.println(F("initialization succeeded"));
-  //writeDataLog("Begin");
-  
+
   Serial.print(F("Beginning freeMemory() = "));
   Serial.println(freeMemory());
   Serial.print(F("\n"));
@@ -192,7 +174,10 @@ void setup() {
   tft.begin(tft.readID());
   tft.setRotation(1);
 
-  digitalWrite(Relay_1, RELAY_OFF); //setup relays
+  drawLogo();
+
+  //setup relay pins
+  digitalWrite(Relay_1, RELAY_OFF);
   digitalWrite(Relay_2, RELAY_OFF);
   digitalWrite(Relay_3, RELAY_OFF);
   digitalWrite(Relay_4, RELAY_OFF);
@@ -208,48 +193,58 @@ void setup() {
   pinMode(Relay_6, OUTPUT);
   pinMode(Relay_7, OUTPUT);
   pinMode(Relay_8, OUTPUT);
-
-  pinMode(rotRight, INPUT);   //setup rotary encoder
+  // setup rotary encoder pins
+  pinMode(rotRight, INPUT);
   pinMode(rotLeft, INPUT);
   pinMode(butSelect, INPUT_PULLUP);
-
-  drawLogo();
-
+  // setup interrupts
   cli();
   attachInterrupt(4, isrA, CHANGE);
   attachInterrupt(5, isrB, CHANGE);
   sei();
 
-
   delay(2000);
+
+  if (b_SD_CONNECTED) getPumpValuesFromSD();
+  else      getPumpValuesFromMemory();
+  serialPrintPumpInfo();
+
   chooseOption();
-  masterDrinkList.serialPrintDrinks();
-  
+  serialPrintMDL();
+
   Serial.println(F("START"));
 }
 
-//-----------------------------------------------------------------------------------------------
+//================================================================================
 // LOOP
-//-----------------------------------------------------------------------------------------------
+//================================================================================
 
 void loop() {
-  //Decide between settings and main menu screens
+#if PRINT_TO_SERIAL
   Serial.println(F("BEGINNING OF LOOP"));
-  //test();
-  if (b_SET == true) {
-    drawSettingsMenu();
-    settings();
-  }
-  else if (b_MM == true) {
-    drawMainMenu();
-    mainMenu();
-  }
+#endif
+
+  if (b_SET == true)      settings();
+  else if (b_MM == true)  mainMenu();
+
+#if PRINT_TO_SERIAL
   Serial.println(F("END OF LOOP"));
+#endif
 }
 
 
 void resetPosValue() {
   pos = 0;
+  lastPos = pos;
+#if PRINT_TO_SERIAL
   Serial.print(F("position: "));
   Serial.println(pos);
+#endif
+}
+
+void serialPrintPosValue() {
+#if PRINT_TO_SERIAL
+  Serial.print(F("position: "));
+  Serial.println(pos);
+#endif
 }

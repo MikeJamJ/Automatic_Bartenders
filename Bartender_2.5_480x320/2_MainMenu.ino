@@ -2,42 +2,50 @@
    Creator:
       Michael Jamieson
    Date of last Update:
-      14/11/2019
+      07/09/2019
    Description:
       Main Menu of the system where drinks can be selected to be made.
-
-      mainMenu() is the main loop while updateMainMenu() is used as an updater for
-      updating the screen with the relevant information for the selected drink.
 */
 
 //-----------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------
 
 void mainMenu() {
-  Serial.println(F("\n===================================\nENTERING MENU\n===================================\n"));
-
-  uint8_t possibleDrinksSize = masterDrinkList.findPossibleDrinksSize(pumps, numOfPumps);
-  Drink possibleDrinksArray[possibleDrinksSize] = {};
-  masterDrinkList.findPossibleDrinks(pumps, numOfPumps, possibleDrinksArray, possibleDrinksSize);
-  DrinkList possible_drinks(possibleDrinksArray, possibleDrinksSize);
-  possible_drinks.alphabetize();
 #if PRINT_TO_SERIAL
-  possible_drinks.serialPrintDrinks();
+  Serial.println(F("\n===================================\nENTERING MENU\n===================================\n"));
 #endif
 
-  resetPosValue();
-  updateMainMenu(possible_drinks);
+  // Check for drinks to can be made. If none can be made, return to the ChooseOptions screen
+  tft.fillScreen(BACKGROUND_COLOR);
+  uint8_t possibleDrinksSize = findPossibleDrinksSize(pumps, numOfPumps);
+  if (possibleDrinksSize == 0) {
+    while (possibleDrinksSize == 0) {
+      drawErrorScreen();
+      delay(2000);
+      chooseOption();
+      possibleDrinksSize = findPossibleDrinksSize(pumps, numOfPumps);
+    }
+  }
+  uint8_t possible_drinks[possibleDrinksSize] = {};
+  findPossibleDrinks(pumps, numOfPumps, possible_drinks, possibleDrinksSize);
+  alphabetize(possible_drinks, possibleDrinksSize);
 
+#if PRINT_TO_SERIAL
+  serialPrintDrinkArray(possible_drinks, possibleDrinksSize);
+#endif
+
+  drawMainMenu();
+  resetPosValue();
+  updateMainMenu(possible_drinks, possibleDrinksSize);
   while (!digitalRead(butSelect)) {}
 
   while (b_MM == true) {
     if (pos != lastPos) {
-      noInterrupts(); //Turns off interrupt to allow the code to finish before another value can be checked
-      if (pos < 0) pos = possibleDrinksSize - 1;
-      else if (pos > (possibleDrinksSize - 1)) pos = 0;
-      Serial.print(F("position: "));
-      Serial.println(pos);
-      updateMainMenu(possible_drinks);
+      noInterrupts();
+      if (pos < 0)                              pos = possibleDrinksSize - 1;
+      else if (pos > (possibleDrinksSize - 1))  pos = 0;
+      serialPrintPosValue();
+      updateMainMenu(possible_drinks, possibleDrinksSize);
       lastPos = pos;
       interrupts();
     }
@@ -57,10 +65,10 @@ void mainMenu() {
         drawDrinkInProgress();
         makeDrink();
         drawDrinkComplete();
-        updateMainMenu(possible_drinks);
+        updateMainMenu(possible_drinks, possibleDrinksSize);
+        tft.setTextColor(TEXT_COLOR, BACKGROUND_COLOR);
+        printCenterH(F("Select to make drink"), 295);
       }
     }
   }
-  Serial.print(F("END OF MENU\nb_MM: "));
-  Serial.println(b_MM);
 }
